@@ -15,7 +15,7 @@ now check the fire alarm in alertmanager
 
 #### Telegram Notification:
 
-<img width="937" height="2015" alt="image" src="https://github.com/user-attachments/assets/294d3cf0-d7e9-4a7c-b1e0-388e09d0cb92" />
+<img width="270" height="579" alt="image" src="https://github.com/user-attachments/assets/33cabe8f-dc16-4d02-a963-9dd619200853" />
 
 #### Gmail Notification:
 <img width="1414" height="698" alt="image" src="https://github.com/user-attachments/assets/7a1fcfac-ba3b-417f-bc32-615b2ba29285" />

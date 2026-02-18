@@ -18,6 +18,8 @@ services:
       - 9093:9093
     volumes:
       - ./alertmanager.yml:/etc/alertmanager/alertmanager.yml
+      - ./bottoken.txt:/etc/alertmanager/bottoken.txt
+      - ./auth_pass.txt:/etc/alertmanager/auth_pass.txt
       - alertmanager_data:/alertmanager
 
 volumes:

@@ -3,7 +3,7 @@ global:
   smtp_smarthost: 'smtp.gmail.com:587'
   smtp_from: 'rahmaa.ahmed24@gmail.com'
   smtp_auth_username: 'rahmaa.ahmed24@gmail.com'
-  smtp_auth_password: 'rzlvubhwlebgfdfa'
+  smtp_auth_password_file: '/etc/alertmanager/auth_pass.txt'
   smtp_require_tls: true
 
 
@@ -34,7 +34,7 @@ receivers:
   - to: 'rahmaa.ahmed24@gmail.com'
     send_resolved: true
   telegram_configs:
-  - bot_token: "8523301312:AAGdSCYeTb65CL3giobPcssvhEyd-DJxRMk"
+  - bot_token_file: "/etc/alertmanager/bottoken.txt"
     chat_id: 817077845
     send_resolved: true
     message: "High Disk Usage ༎ຶ⁠‿⁠༎ຶ"

@@ -26,7 +26,7 @@ scrape_configs:
     # scheme defaults to 'http'.
 
     static_configs:
-      - targets: ["localhost:9090", "13.48.45.186:9100", "13.51.55.212:9100"]
+      - targets: ["localhost:9090", "51.21.195.95:9100", "13.60.196.219:9100"]
        # The label name is added as a label `label_name=<label_value>` to any timeseries scraped from this config.
         labels:
           app: "prometheus"

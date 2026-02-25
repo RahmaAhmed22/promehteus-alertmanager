@@ -1,0 +1,34 @@
+groups:
+- name: Kubernetes Cluster Alerts
+  labels:
+    team: myteam
+  rules:
+  - alert: CPU Usage Alert
+    expr: (1- avg by (instance)(rate(node_cpu_seconds_total{mode="idle",job="kubernetes-nodes"}[5m]))) > 0.8
+    for: 10s
+    keep_firing_for: 5m
+    labels:
+      severity: page
+      source: Kubernetes
+    annotations:
+      summary: "High CPU Usage for Cluster Node:{{ $labels.instance }}"
+
+  - alert: High Pod CPU Usage
+    expr: sum(irate(container_cpu_usage_seconds_total{origin_prometheus=~"",pod=~".*",container =~"nginx",container !="",container!="POD",node=~"^.*$",namespace=~".*"}[2m])) by (container, pod,node,namespace) / (sum(container_spec_cpu_quota{origin_prometheus=~"",pod=~".*",container =~"nginx",container !="",container!="POD",node=~"^.*$",namespace=~".*"}/100000) by (container, pod,node,namespace)) > 0.8
+    for: 10s
+    keep_firing_for: 5m
+    labels:
+      severity: page
+      source: Kubernetes
+    annotations:
+      summary: "High CPU Usage for Pod:{{ $labels.pod }}"
+
+  - alert: High Pod Memory Usage
+    expr: kube_pod_container_status_last_terminated_reason{job='kube-state-metrics', reason='OOMKilled'} == 1
+    for: 10s
+    keep_firing_for: 5m
+    labels:
+      severity: page
+      source: Kubernetes
+    annotations:
+      summary: "High Memory Usage for Pod:{{ $labels.pod }} and is continuously terminated"

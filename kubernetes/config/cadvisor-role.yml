@@ -1,0 +1,21 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  annotations:
+  name: prometheus-cadvisor-role
+  resourceVersion: "37875"
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - nodes
+  - nodes/metrics
+  - nodes/proxy
+  - pods
+  - pods/proxy
+  - services
+  - endpoints
+  verbs:
+  - get
+  - list
+  - watch

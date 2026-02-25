@@ -13,20 +13,107 @@ alerting:
 
 # Load rules once and periodically evaluate them according to the global 'evaluation_interval'.
 rule_files:
-   - "alerts.yml"
-  # - "second_rules.yml"
+   - "nodes_alerts.yml"
+   - "k8s-alerts.yml"
+   - "flask-alerts.yml"
 
 # A scrape configuration containing exactly one endpoint to scrape:
 # Here it's Prometheus itself.
 scrape_configs:
   # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
-  - job_name: "prometheus"
+  - job_name: "node_exporters"
 
     # metrics_path defaults to '/metrics'
     # scheme defaults to 'http'.
 
     static_configs:
-      - targets: ["localhost:9090", "51.21.195.95:9100", "13.60.196.219:9100"]
+      - targets: ["localhost:9090", "51.20.190.144:9100", "13.61.178.233:9100"]
        # The label name is added as a label `label_name=<label_value>` to any timeseries scraped from this config.
         labels:
-          app: "prometheus"
+          app: "node_exporters"
+
+  - job_name: "http_requests"
+    static_configs:
+      - targets: ["flask_app:8001"]
+        labels:
+          app: "http_requests"
+
+  - job_name: "cadvisor"
+    static_configs:
+      - targets: ["cadvisor:8080"]
+        labels:
+          app: "cadvisor"
+
+  - job_name: "kube-state-metrics"
+    scheme: https
+    tls_config:
+      insecure_skip_verify: true
+    authorization:
+      credentials_file: /etc/prometheus/k8s_token.txt
+    kubernetes_sd_configs:
+      - role: pod
+        api_server: https://kind-control-plane:6443
+        tls_config:
+          insecure_skip_verify: true
+        bearer_token_file: /etc/prometheus/k8s_token.txt
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_name]
+        action: keep
+        regex: kube-state-metrics
+
+      - target_label: __address__
+        replacement: kind-control-plane:6443
+
+      - source_labels: [__meta_kubernetes_namespace, __meta_kubernetes_pod_name, __meta_kubernetes_pod_container_port_number]
+        action: replace
+        regex: (.+);(.+);(.+)
+        target_label: __metrics_path__
+        replacement: /api/v1/namespaces/${1}/pods/${2}:8080/proxy/metrics
+
+  - job_name: 'kubernetes-nodes'
+    scheme: https
+    tls_config:
+      insecure_skip_verify: true
+    authorization:
+      credentials_file: /etc/prometheus/k8s_token.txt
+    kubernetes_sd_configs:
+      - role: pod
+        api_server: https://kind-control-plane:6443
+        tls_config:
+          insecure_skip_verify: true
+        bearer_token_file: /etc/prometheus/k8s_token.txt
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_app]
+        action: keep
+        regex: node-exporter
+
+      # 2. Map the address to the API server
+      - target_label: __address__
+        replacement: kind-control-plane:6443
+
+      # 3. Construct the proxy path - USE PORT 9100
+      - source_labels: [__meta_kubernetes_namespace, __meta_kubernetes_pod_name]
+        regex: (.+);(.+)
+        target_label: __metrics_path__
+        replacement: /api/v1/namespaces/${1}/pods/${2}:9100/proxy/metrics
+
+  - job_name: 'cadvisor-kubernetes'
+    scheme: https
+    tls_config: { insecure_skip_verify: true }
+    authorization: { credentials_file: /etc/prometheus/k8s_token.txt }
+    kubernetes_sd_configs:
+      - role: node
+        api_server: https://kind-control-plane:6443
+        tls_config: { insecure_skip_verify: true }
+        bearer_token_file: /etc/prometheus/k8s_token.txt
+    relabel_configs:
+      - target_label: __address__
+        replacement: kind-control-plane:6443
+      - source_labels: [__meta_kubernetes_node_name]
+        regex: (.+)
+        target_label: __metrics_path__
+        replacement: /api/v1/nodes/${1}/proxy/metrics/cadvisor
+
+
+
+

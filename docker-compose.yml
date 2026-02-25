@@ -1,25 +1,46 @@
+networks:
+  monitoring:
+    driver: bridge
+  kind:
+    external: true
 services:
   prometheus:
     image: prom/prometheus:v3.9.1
     container_name: prometheus
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
-      - ./alerts.yml:/etc/prometheus/alerts.yml
+      - ./alertmanager/nodes_alerts.yml:/etc/prometheus/nodes_alerts.yml
+      - ./alertmanager/k8s-alerts.yml:/etc/prometheus/k8s-alerts.yml
+      - ./alertmanager/flask-alerts.yml:/etc/prometheus/flask-alerts.yml
+      - ./kubernetes/k8s_token.txt:/etc/prometheus/k8s_token.txt:ro
       - prometheus_data:/prometheus
     ports:
       - 9090:9090
     depends_on:
       - alertmanager
+      - cadvisor
+    networks:
+      - monitoring
+      - kind
+    restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    user: root
+
   alertmanager:
     image: prom/alertmanager:v0.31.1
     container_name: alertmanager
     ports:
       - 9093:9093
     volumes:
-      - ./alertmanager.yml:/etc/alertmanager/alertmanager.yml
+      - ./alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml
       - ./bottoken.txt:/etc/alertmanager/bottoken.txt
       - ./auth_pass.txt:/etc/alertmanager/auth_pass.txt
       - alertmanager_data:/alertmanager
+    networks:
+      - monitoring
+      - kind
+    restart: unless-stopped
 
   grafana:
     image: grafana/grafana:12.3
@@ -33,6 +54,35 @@ services:
     environment:
       - GF_SECURITY_ADMIN_USER=rahma
       - GF_SECURITY_ADMIN_PASSWORD=abc123
+    networks:
+      - monitoring
+      - kind
+    restart: unless-stopped
+
+  flask_app:
+    build: ./flask_app
+    container_name: flask_app
+    ports:
+      - 5000:5000
+    networks:
+      - monitoring
+    restart: unless-stopped
+
+  cadvisor:
+    image: ghcr.io/google/cadvisor:0.55.1
+    container_name: cadvisor
+    ports:
+      - "8080:8080"
+    networks:
+      - monitoring
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    privileged: true
+    restart: unless-stopped
 
 volumes:
   prometheus_data: {}

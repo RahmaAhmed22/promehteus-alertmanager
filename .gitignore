@@ -1,2 +1,3 @@
 bottoken.txt
 auth_pass.txt
+./kubernetes/k8s_token.txt

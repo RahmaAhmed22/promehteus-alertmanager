@@ -1,0 +1,48 @@
+groups:
+- name: EC2 Alerts
+  labels:
+    team: myteam
+  rules:
+  - alert: Disk Usage
+    expr: (node_filesystem_size_bytes{mountpoint="/"} - node_filesystem_avail_bytes{mountpoint="/"}) / node_filesystem_size_bytes{mountpoint="/"}  > 0.8
+    for: 10s
+    keep_firing_for: 5m
+    labels:
+      severity: page
+      source: ec2
+    annotations:
+      summary: "High Disk Usage for instance {{ $labels.instance }}"
+
+
+  - alert: Instance Down Alert
+    expr: up{job="node_exporters"} == 0
+    for: 10s
+    keep_firing_for: 5m
+    labels:
+      severity: page
+      source: ec2
+    annotations:
+      summary: "The Instance {{ $labels.instance }} is down"
+
+  - alert: Memory Usage Alert
+    expr: (1- node_memory_MemAvailable_bytes{job="node_exporters"}/node_memory_MemTotal_bytes{job="node_exporters"}) > 0.8
+    for: 10s
+    keep_firing_for: 5m
+    labels:
+      severity: page
+      source: ec2
+    annotations:
+      summary: "High memory Usage for instance {{ $labels.instance }}"
+  
+  - alert: CPU Usage Alert
+    expr: (1- avg by (instance)(rate(node_cpu_seconds_total{mode="idle",job="node_exporters"}[5m]))) > 0.8
+    for: 10s
+    keep_firing_for: 5m
+    labels:
+      severity: page
+      source: ec2
+    annotations:
+      summary: "High CPU Usage for instance {{ $labels.instance }}"
+
+
+

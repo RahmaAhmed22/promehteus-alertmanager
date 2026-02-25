@@ -1,0 +1,14 @@
+groups:
+- name: Flask App Alerts
+  labels:
+    team: myteam
+  rules:
+  - alert: Fail Server Request
+    expr: sum(rate(my_requests_total{path='fail-server'}[1m])) > 0.1
+    for: 10s
+    keep_firing_for: 5m
+    labels:
+      severity: page
+      source: flask_app
+    annotations:
+      summary: "Server Failure is up 10%"

@@ -11,4 +11,4 @@ groups:
       severity: page
       source: flask_app
     annotations:
-      summary: "Server Failure is up 10%"
+      summary: "Server Failure is above 10%"
